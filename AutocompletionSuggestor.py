@@ -3,6 +3,10 @@ from collections import namedtuple
 import json
 import urllib.request
 import random
+from functools import lru_cache
+
+# For testing
+random.seed(20181106)
 
 # import Novrig's word frequency list as dictionary
 url = 'http://norvig.com/ngrams/count_1w.txt'
@@ -10,7 +14,7 @@ print('Downloading %s' % url)
 freq_map = dict()
 with urllib.request.urlopen(url) as f:
 	print('Processing frequency list file')
-	for line_number in range(5000): # load top frequency words
+	for line_number in range(10000): # load top frequency words
 		line = f.readline()
 		word, freq = line.strip().split()
 		word = word.decode('utf-8')
@@ -148,35 +152,44 @@ for word in dictionary:
 assert trie.lookup('search') == True
 assert trie.lookup('collection') == True
 
+
+# Demo Code
+
+verbose = True
+num_words_per_testcase = 8
+
+word_list = [word for word in dictionary if len(word) >= 3] # test words of at least 3 letters
+
 print()
 print('----- start demo -----')
-num_tries = 8
 # perfect prefixes
 print('Check partial_input without errors:')
 print()
-for n, word in enumerate(random.sample(dictionary, num_tries)):
+for n, word in enumerate(random.sample(word_list, num_words_per_testcase)):
 	print('Word %d: %s' % (n, word))
 	for i in range(1, len(word)):
 		partial = word[:i]
-		print('\t%s->' % partial, trie.suggest(partial))
+		if verbose:
+			print('\t%s->' % partial, trie.suggest(partial))
 	print()
 
 # skip one letter
 print('Check partial_input with one deletion:')
 print()
-for n, word in enumerate(random.sample(dictionary, num_tries)):
+for n, word in enumerate(random.sample(word_list, num_words_per_testcase)):
 	print('Word %d: %s' % (n, word))
 	i = random.randint(1, max(len(word) - 2, 1))
 	temp = word[:i] + word[i+1:]
 	for i in range(1, len(temp) + 1):
 		partial = temp[:i]
-		print('\t%s->' % partial, trie.suggest(partial))
+		if verbose:
+			print('\t%s->' % partial, trie.suggest(partial))
 	print()
 
 # mistype one letter
 print('Check partial_input with one substitution:')
 print()
-for n, word in enumerate(random.sample(dictionary, num_tries)):
+for n, word in enumerate(random.sample(word_list, num_words_per_testcase)):
 	print('Word %d: %s' % (n, word))
 	i = random.randint(1, max(len(word) - 2, 1))
 	temp = list(word)
@@ -184,13 +197,15 @@ for n, word in enumerate(random.sample(dictionary, num_tries)):
 	temp = ''.join(temp)
 	for i in range(1, len(temp) + 1):
 		partial = temp[:i]
-		print('\t%s->' % partial, trie.suggest(partial))
+		if verbose:
+			print('\t%s->' % partial, trie.suggest(partial))
 	print()
 
 # mistype two letters
 print('Check partial_input with two substitution:')
 print()
-for n, word in enumerate(random.sample([word for word in dictionary if len(word) > 5], num_tries)):
+for n, word in enumerate(random.sample([word for word in dictionary if len(word) > 5]
+			, num_words_per_testcase)):
 	print('Word %d: %s' % (n, word))
 	i, j = random.sample(range(1, len(word)), 2)
 	temp = list(word)
@@ -199,5 +214,6 @@ for n, word in enumerate(random.sample([word for word in dictionary if len(word)
 	temp = ''.join(temp)
 	for i in range(1, len(temp) + 1):
 		partial = temp[:i]
-		print('\t%s->' % partial, trie.suggest(partial))
+		if verbose:
+			print('\t%s->' % partial, trie.suggest(partial))
 	print()
