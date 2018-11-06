@@ -10,7 +10,7 @@ print('Downloading %s' % url)
 freq_map = dict()
 with urllib.request.urlopen(url) as f:
 	print('Processing frequency list file')
-	for line_number in range(8000): # load top frequency words
+	for line_number in range(5000): # load top frequency words
 		line = f.readline()
 		word, freq = line.strip().split()
 		word = word.decode('utf-8')
@@ -38,6 +38,8 @@ class TrieNode():
 			return self.prefix + self.ch
 		else:
 			None
+
+
 	def __str__(self):
 		return "TrieNode('%s, %s')" % (self.prefix, self.ch)
 
@@ -90,8 +92,8 @@ class TrieNode():
 		prefix = prefix.lower()
 		node = None
 		i = 0
-		allowed_errors = 1
-		result = [set() for _ in range(allowed_errors + 1)]
+		allowed_errors = 2
+		results = [set() for _ in range(allowed_errors + 1)]
 		NodeAndPrefix = namedtuple('NodeAndPrefix', ('node', 'prefix', 'errors'))
 		q = deque([NodeAndPrefix(self, prefix, 0)])
 		is_first_letter = True # only allow input errors after first letter
@@ -116,12 +118,15 @@ class TrieNode():
 						q.append(NodeAndPrefix(node, prefix[1] + prefix[0] + prefix[2:], errors + 1))
 				is_first_letter = False
 			else:
-				result[errors] |= set(node.words())
-		temp = sorted(list(result[0]), key=lambda w: freq_map[w], reverse=True)
-		if len(temp) <= num_suggestions: # include suggestions from errorous inputs if necessary
-			# '--' marks results from assuming no input errors to assuming 1 input error
-			temp  += ['--'] + sorted(list(result[1] - result[0]), key=lambda w: freq_map[w], reverse=True)
-		return temp[:num_suggestions + 1]
+				results[errors] |= set(node.words())
+		suggestions = sorted(list(results[0]), key=lambda w: freq_map[w], reverse=True) # first use results from no input errors
+		if allowed_errors:
+			for words in results[1:]:
+				if len(suggestions) > num_suggestions: # include suggestions from errorous inputs if necessary
+					# '--' marks results from assuming no input errors to assuming 1 input error
+					break
+				suggestions += ['--'] + sorted(list(word for word in words if word not in suggestions), key=lambda w: freq_map[w], reverse=True)
+		return suggestions[:num_suggestions + 1]
 
 	def lookup(self, word):
 		node = self
@@ -168,3 +173,31 @@ for n, word in enumerate(random.sample(dictionary, num_tries)):
 		print('\t%s->' % partial, trie.suggest(partial))
 	print()
 
+# mistype one letter
+print('Check partial_input with one substitution:')
+print()
+for n, word in enumerate(random.sample(dictionary, num_tries)):
+	print('Word %d: %s' % (n, word))
+	i = random.randint(1, max(len(word) - 2, 1))
+	temp = list(word)
+	temp[i] = random.choice([c for c in 'abcdefghijklmnopqrstuvwxyz' if c != word[i]])
+	temp = ''.join(temp)
+	for i in range(1, len(temp) + 1):
+		partial = temp[:i]
+		print('\t%s->' % partial, trie.suggest(partial))
+	print()
+
+# mistype two letters
+print('Check partial_input with two substitution:')
+print()
+for n, word in enumerate(random.sample([word for word in dictionary if len(word) > 5], num_tries)):
+	print('Word %d: %s' % (n, word))
+	i, j = random.sample(range(1, len(word)), 2)
+	temp = list(word)
+	temp[i] = random.choice([c for c in 'abcdefghijklmnopqrstuvwxyz' if c != word[i]])
+	temp[j] = random.choice([c for c in 'abcdefghijklmnopqrstuvwxyz' if c != word[j]])
+	temp = ''.join(temp)
+	for i in range(1, len(temp) + 1):
+		partial = temp[:i]
+		print('\t%s->' % partial, trie.suggest(partial))
+	print()
