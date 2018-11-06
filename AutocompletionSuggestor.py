@@ -5,16 +5,15 @@ import urllib.request
 import random
 from functools import lru_cache
 
-# For testing
-random.seed(20181106)
 
 # import Novrig's word frequency list as dictionary
+words_to_import = 10000
 url = 'http://norvig.com/ngrams/count_1w.txt'
 print('Downloading %s' % url)
 freq_map = dict()
 with urllib.request.urlopen(url) as f:
 	print('Processing frequency list file')
-	for line_number in range(10000): # load top frequency words
+	for line_number in range(words_to_import): # load top frequency words
 		line = f.readline()
 		word, freq = line.strip().split()
 		word = word.decode('utf-8')
@@ -152,12 +151,16 @@ for word in dictionary:
 assert trie.lookup('search') == True
 assert trie.lookup('collection') == True
 
+print('Check trie contains %d words...' % words_to_import, end='')
+assert len(trie.words()) == words_to_import
+print('pass')
 
 # Demo Code
-
+random_seed = 20181105
 verbose = True
 num_words_per_testcase = 8
 
+random.seed(random_seed) # seed random number generator
 word_list = [word for word in dictionary if len(word) >= 3] # test words of at least 3 letters
 
 print()
