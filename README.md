@@ -6,6 +6,8 @@ The same class can also be used as spell check by supplying complete word input 
 A simple demo is provided with the source code to demonstrate suggestions from incremental partial matching.
 
 # Sample demo output
+Note that the '--' in suggested word list seprates results with no input errors, 1 error, and 2 errors.
+
 ```
 Downloading http://norvig.com/ngrams/count_1w.txt
 Processing frequency list file
