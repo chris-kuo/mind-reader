@@ -1,5 +1,4 @@
-from collections import deque
-from collections import namedtuple
+from collections import deque, namedtuple, OrderedDict
 import json
 import urllib.request
 import random
@@ -13,6 +12,7 @@ class TrieNode():
         self.prefix = prefix
         self.end_word = end_word
         self.children = dict()
+        self.cache = None
 
     
     def word(self):
@@ -28,10 +28,14 @@ class TrieNode():
     def __str__(self):
         return "TrieNode('%s, %s')" % (self.prefix, self.ch)
 
+    def clear_cache(self):
+        self.cache = None
+
     def add(self, word):
         '''
         Append word to this trie node
         '''
+        self.clear_cache()
         node = self
         prefix = self.prefix + self.ch
         i = 0
@@ -44,18 +48,21 @@ class TrieNode():
             prefix += ch
         node.end_word = True
 
+
     def words(self):
         '''
         Enumerate all words starting from this trie node
         '''
-        q = [self]
-        result = []
-        while q:
-            node = q.pop()
-            if node.end_word:
-                result.append(node.word())
-            q.extend(node.children.values())
-        return result
+        if not self.cache:
+            q = [self]
+            result = []
+            while q:
+                node = q.pop()
+                if node.end_word:
+                    result.append(node.word())
+                q.extend(node.children.values())
+            self.cache = result
+        return self.cache
 
     def print(self):
         '''
@@ -70,7 +77,7 @@ class TrieNode():
         for child in self.children.values():
             child.print()
     
-    def suggest(self, prefix, num_suggestions=5):
+    def suggest(self, prefix):
         '''
         Return list of suggested words based on lower case partial input.
         ''' 
@@ -104,14 +111,11 @@ class TrieNode():
                 is_first_letter = False
             else:
                 results[errors] |= set(node.words())
-        suggestions = sorted(list(results[0]), key=lambda w: freq_map[w], reverse=True) # first use results from no input errors
-        if allowed_errors:
-            for words in results[1:]:
-                if len(suggestions) > num_suggestions: # include suggestions from errorous inputs if necessary
-                    # '--' marks results from assuming no input errors to assuming 1 input error
-                    break
-                suggestions += ['--'] + sorted(list(word for word in words if word not in suggestions), key=lambda w: freq_map[w], reverse=True)
-        return suggestions[:num_suggestions + 1]
+        temp = set()
+        for result in results:
+            result -= temp
+            temp |= result
+        return results
 
     def lookup(self, word):
         node = self
@@ -130,6 +134,7 @@ class WordSuggestor():
     def __init__(self):
         self._trie = TrieNode('')
         self._word_weight = dict()
+        self._cache = OrderedDict()
 
     def load_word_weight(self, word_weight_dict):
         '''
@@ -138,6 +143,7 @@ class WordSuggestor():
         '''
         for word, weight in word_weight_dict.items():
             self._word_weight[word] = weight
+        self._cache.clear()
 
     def load_dictionary(self, dictionary):
         '''
@@ -146,6 +152,7 @@ class WordSuggestor():
         '''
         for word in dictionary:
             self._trie.add(word)
+        self._cache.clear()
 
     def lookup_word(self, word):
         '''
@@ -161,11 +168,24 @@ class WordSuggestor():
         '''
         return len(self._trie.words())
 
-    def suggest(self, partial_input):
+    def suggest(self, partial_input, num_suggestions=8):
         '''
         Suggest word based on partial_input string.
         '''
-        return self._trie.suggest(partial_input)
+        if partial_input not in self._cache:
+            results = self._trie.suggest(partial_input)
+            results = list(map(list, results))
+            for result in results:
+                result.sort(key=lambda w: self._word_weight[w], reverse=True)
+            i = 1
+            suggestions = results[0]
+            while len(suggestions) < num_suggestions and i < len(results):
+                suggestions.extend(results[i])
+                i += 1
+            # trim result
+            suggestions = suggestions[:num_suggestions]
+            self._cache[partial_input] = suggestions
+        return self._cache[partial_input]
 
 
 if __name__=='__main__':
@@ -207,7 +227,7 @@ if __name__=='__main__':
     # Demo Code
     random_seed = 20181105
     verbose = True
-    num_words_per_testcase = 8
+    num_words_per_testcase = 5
 
     random.seed(random_seed) # seed random number generator
     word_list = [word for word in dictionary if len(word) >= 3] # test words of at least 3 letters
