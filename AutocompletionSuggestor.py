@@ -168,104 +168,104 @@ class WordSuggestor():
         return self._trie.suggest(partial_input)
 
 
+if __name__=='__main__':
+    # import Novrig's word frequency list as dictionary
+    words_to_import = 10000
+    url = 'http://norvig.com/ngrams/count_1w.txt'
+    print('Downloading %s' % url)
+    freq_map = dict()
+    with urllib.request.urlopen(url) as f:
+        print('Processing frequency list file')
+        for line_number in range(words_to_import): # load top frequency words
+            line = f.readline()
+            word, freq = line.strip().split()
+            word = word.decode('utf-8')
+            freq = int(freq)
+            freq_map[word] = freq
+    print('First %d words loaded from %s' % (len(freq_map), url))
 
-# import Novrig's word frequency list as dictionary
-words_to_import = 10000
-url = 'http://norvig.com/ngrams/count_1w.txt'
-print('Downloading %s' % url)
-freq_map = dict()
-with urllib.request.urlopen(url) as f:
-    print('Processing frequency list file')
-    for line_number in range(words_to_import): # load top frequency words
-        line = f.readline()
-        word, freq = line.strip().split()
-        word = word.decode('utf-8')
-        freq = int(freq)
-        freq_map[word] = freq
-print('First %d words loaded from %s' % (len(freq_map), url))
+    # build dictionary from frequency map
+    dictionary = list(freq_map)
 
-# build dictionary from frequency map
-dictionary = list(freq_map)
+    # Instantiate Word Suggestor
+    suggestor = WordSuggestor()
 
-# Instantiate Word Suggestor
-suggestor = WordSuggestor()
+    # load dictionary
+    suggestor.load_dictionary(dictionary)
 
-# load dictionary
-suggestor.load_dictionary(dictionary)
+    # load word weights
+    suggestor.load_word_weight(freq_map)
 
-# load word weights
-suggestor.load_word_weight(freq_map)
+    # Try searching 
+    assert suggestor.lookup_word('search') == True
+    assert suggestor.lookup_word('collection') == True
 
-# Try searching 
-assert suggestor.lookup_word('search') == True
-assert suggestor.lookup_word('collection') == True
+    print('Check suggestor dicationary contains %d words...' % words_to_import, end='')
+    assert suggestor.total_number_of_words() == words_to_import
+    print('pass')
 
-print('Check suggestor dicationary contains %d words...' % words_to_import, end='')
-assert suggestor.total_number_of_words() == words_to_import
-print('pass')
+    # Demo Code
+    random_seed = 20181105
+    verbose = True
+    num_words_per_testcase = 8
 
-# Demo Code
-random_seed = 20181105
-verbose = True
-num_words_per_testcase = 8
+    random.seed(random_seed) # seed random number generator
+    word_list = [word for word in dictionary if len(word) >= 3] # test words of at least 3 letters
 
-random.seed(random_seed) # seed random number generator
-word_list = [word for word in dictionary if len(word) >= 3] # test words of at least 3 letters
-
-print()
-print('----- start demo -----')
-# perfect prefixes
-print('Check partial_input without errors:')
-print()
-for n, word in enumerate(random.sample(word_list, num_words_per_testcase)):
-    print('Word %d: %s' % (n, word))
-    for i in range(1, len(word)):
-        partial = word[:i]
-        if verbose:
-            print('\t%s->' % partial, suggestor.suggest(partial))
     print()
-
-# skip one letter
-print('Check partial_input with one deletion:')
-print()
-for n, word in enumerate(random.sample(word_list, num_words_per_testcase)):
-    print('Word %d: %s' % (n, word))
-    i = random.randint(1, max(len(word) - 2, 1))
-    temp = word[:i] + word[i+1:]
-    for i in range(1, len(temp) + 1):
-        partial = temp[:i]
-        if verbose:
-            print('\t%s->' % partial, suggestor.suggest(partial))
+    print('----- start demo -----')
+    # perfect prefixes
+    print('Check partial_input without errors:')
     print()
+    for n, word in enumerate(random.sample(word_list, num_words_per_testcase)):
+        print('Word %d: %s' % (n, word))
+        for i in range(1, len(word)):
+            partial = word[:i]
+            if verbose:
+                print('\t%s->' % partial, suggestor.suggest(partial))
+        print()
 
-# mistype one letter
-print('Check partial_input with one substitution:')
-print()
-for n, word in enumerate(random.sample(word_list, num_words_per_testcase)):
-    print('Word %d: %s' % (n, word))
-    i = random.randint(1, max(len(word) - 2, 1))
-    temp = list(word)
-    temp[i] = random.choice([c for c in 'abcdefghijklmnopqrstuvwxyz' if c != word[i]])
-    temp = ''.join(temp)
-    for i in range(1, len(temp) + 1):
-        partial = temp[:i]
-        if verbose:
-            print('\t%s->' % partial, suggestor.suggest(partial))
+    # skip one letter
+    print('Check partial_input with one deletion:')
     print()
+    for n, word in enumerate(random.sample(word_list, num_words_per_testcase)):
+        print('Word %d: %s' % (n, word))
+        i = random.randint(1, max(len(word) - 2, 1))
+        temp = word[:i] + word[i+1:]
+        for i in range(1, len(temp) + 1):
+            partial = temp[:i]
+            if verbose:
+                print('\t%s->' % partial, suggestor.suggest(partial))
+        print()
 
-# mistype two letters
-print('Check partial_input with two substitution:')
-print()
-for n, word in enumerate(random.sample([word for word in dictionary if len(word) > 5]
-            , num_words_per_testcase)):
-    print('Word %d: %s' % (n, word))
-    i, j = random.sample(range(1, len(word)), 2)
-    temp = list(word)
-    temp[i] = random.choice([c for c in 'abcdefghijklmnopqrstuvwxyz' if c != word[i]])
-    temp[j] = random.choice([c for c in 'abcdefghijklmnopqrstuvwxyz' if c != word[j]])
-    temp = ''.join(temp)
-    for i in range(1, len(temp) + 1):
-        partial = temp[:i]
-        if verbose:
-            print('\t%s->' % partial, suggestor.suggest(partial))
+    # mistype one letter
+    print('Check partial_input with one substitution:')
     print()
+    for n, word in enumerate(random.sample(word_list, num_words_per_testcase)):
+        print('Word %d: %s' % (n, word))
+        i = random.randint(1, max(len(word) - 2, 1))
+        temp = list(word)
+        temp[i] = random.choice([c for c in 'abcdefghijklmnopqrstuvwxyz' if c != word[i]])
+        temp = ''.join(temp)
+        for i in range(1, len(temp) + 1):
+            partial = temp[:i]
+            if verbose:
+                print('\t%s->' % partial, suggestor.suggest(partial))
+        print()
+
+    # mistype two letters
+    print('Check partial_input with two substitution:')
+    print()
+    for n, word in enumerate(random.sample([word for word in dictionary if len(word) > 5]
+                , num_words_per_testcase)):
+        print('Word %d: %s' % (n, word))
+        i, j = random.sample(range(1, len(word)), 2)
+        temp = list(word)
+        temp[i] = random.choice([c for c in 'abcdefghijklmnopqrstuvwxyz' if c != word[i]])
+        temp[j] = random.choice([c for c in 'abcdefghijklmnopqrstuvwxyz' if c != word[j]])
+        temp = ''.join(temp)
+        for i in range(1, len(temp) + 1):
+            partial = temp[:i]
+            if verbose:
+                print('\t%s->' % partial, suggestor.suggest(partial))
+        print()
