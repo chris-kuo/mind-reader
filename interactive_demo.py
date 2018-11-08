@@ -72,7 +72,7 @@ def main(stdscr):
         # get keyboard input
         c = stdscr.getch()
         ch = chr(c)
-        if (c == curses.KEY_BACKSPACE or c == curses.KEY_DC) and len(buf) > 1:
+        if (c == curses.KEY_BACKSPACE or c == curses.KEY_DC or c == 127) and len(buf) > 1:
             buf.pop()
         elif ch.isalnum() or ch.isspace():
             buf.append(ch)
