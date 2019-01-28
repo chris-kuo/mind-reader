@@ -27,7 +27,7 @@ def main():
 	...
 ```
 
-_Example: use as autocompetor for Python IDE_
+_Example: use as autocompletor for Python IDE_
 
 ```Python
 from MindReader import MindReader
@@ -43,14 +43,15 @@ if __name__ == '__main__':
 	# load keyword
 	for word in keyword.kwlist:
 		mind_reader.increment_primary(word)
+	...
+	partial_input = read_user_input()
+	suggestions = mind_reader.suggest(partial_input, allowed_errors=1, num_suggestions=6)
+	...
+	# after user completes input (such as insertion of space or new line)
 	# use secondary for variable/user defined names
-	mind_reader.increment_secondary('num_errors')
-	mind_reader.increment_secondary('count')
-	word = 'num_errors'
-	# word = 'enumeration'
-	for i in range(1, len(word)):
-		partial_input = word[:i]
-		print(f'{partial_input} -> {mind_reader.suggest(partial_input, 1)}')
+	mind_reader.increment_secondary(user_input)
+	# for example, if user entered 'count' as variable name:
+	# 	mind_reader.increment_secondary('count')
 	...
 ```
 
