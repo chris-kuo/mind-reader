@@ -10,6 +10,7 @@ class MindReader():
 		self.primary_trie = FuzzyTrie()
 		self.secondary_trie = FuzzyTrie()
 		self.p_single_error = 0.1
+		self.default_primary_file = 'count_1w.txt'
 
 
 	########## Load Word Frequency ##########
@@ -34,6 +35,15 @@ class MindReader():
 				break
 		return num_words
 
+	def load_default_primary_freq(self):
+		try:
+			with open(self.default_primary_file) as infile:
+				# load top 5000 words instead of entire word list
+				self.primary_num_words_loaded = self.mind_reader.load_primary_freq(infile)
+		except IOError as err:
+		    print("I/O error: {0}".format(err))
+
+
 	def load_secondary_freq(self, infile) -> int:
 		# input format
 		# on each line, <word> <count>
@@ -53,6 +63,7 @@ class MindReader():
 			self.secondary_trie.add_word(word)
 			num_words += 1
 		return num_words
+
 
 	########## Update Word Frequency Maps ##########
 	def increment_primary(self, word: str):
