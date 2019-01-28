@@ -3,7 +3,7 @@ from curses import wrapper
 import urllib.request
 import sys
 
-from MindReaer import MindReader
+from MindReader import MindReader
 
 
 def main(stdscr):
