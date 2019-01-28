@@ -22,7 +22,7 @@ def main(stdscr):
     # Create word suggestor and load dictionary and word weight
     words_to_import = 10000
     filename = 'count_1w.txt'
-    with open(filename, r) as f:
+    with open(filename, 'r') as f:
         stdscr.addstr(1, 0, 'Loading default word frequency file')
         suggestor.load_primary_freq(f)
 
