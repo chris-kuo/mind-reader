@@ -3,7 +3,7 @@ from curses import wrapper
 import urllib.request
 import sys
 
-from AutocompletionSuggestor import WordSuggestor
+from MindReaer import MindReader
 
 
 def main(stdscr):
@@ -16,44 +16,17 @@ def main(stdscr):
     # Clear screen
     stdscr.clear()
     
+    # create MindReader instance
+    suggestor = MindReader()
+
     # Create word suggestor and load dictionary and word weight
     words_to_import = 10000
-    url = 'http://norvig.com/ngrams/count_1w.txt'
-    stdscr.addstr(0, 0, 'Downloading %s' % url)
-    stdscr.refresh()
-    freq_map = dict()
-    with urllib.request.urlopen(url) as f:
-        stdscr.addstr(1, 0, 'Processing frequency list file')
-        stdscr.refresh()
-        for line_number in range(words_to_import): # load top frequency words
-            line = f.readline()
-            word, freq = line.strip().split()
-            word = word.decode('utf-8')
-            freq = int(freq)
-            freq_map[word] = freq
-    stdscr.addstr(2, 0, 'First %d words loaded from %s' % (len(freq_map), url))
-    stdscr.refresh()
-    # build dictionary from frequency map
-    stdscr.addstr(3, 0, 'Loading dictionary...')
-    stdscr.refresh()
-    dictionary = list(freq_map)
+    filename = 'count_1w.txt'
+    with open(filename, r) as f:
+        stdscr.addstr(1, 0, 'Loading default word frequency file')
+        suggestor.load_primary_freq(f)
 
-    # Instantiate Word Suggestor
-    suggestor = WordSuggestor()
-
-    # load dictionary
-    suggestor.load_dictionary(dictionary)
-
-    # load word weights
-    stdscr.addstr(4, 0, 'Loading word weights...')
-    stdscr.refresh()
-    suggestor.load_word_weight(freq_map)
-
-    # check number of words loaded
-    stdscr.addstr(5, 0, 'Check suggestor dicationary contains %d words...' % words_to_import)
-    stdscr.refresh()
-    assert suggestor.total_number_of_words() == words_to_import
-    stdscr.addstr('pass\n')
+    stdscr.addstr(2, 0, 'First %d words loaded from %s' % (suggestor.primary_total_count, filename))
     stdscr.refresh()
 
     stdscr.addstr(6, 0, 'Press enter to begin.')
