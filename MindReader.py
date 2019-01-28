@@ -61,6 +61,7 @@ class MindReader():
 			self.primary_trie.add_word(word)
 		else:
 			self.primary_fmap[word] += 1
+		self.primary_total_count += 1
 
 	def increment_secondary(self, word: str):
 		if word not in self.secondary_fmap:
@@ -68,6 +69,7 @@ class MindReader():
 			self.secondary_trie.add_word(word)
 		else:
 			self.secondary_fmap[word] += 1
+		self.secondary_total_count += 1
 
 	def clear_primary_fmap(self):
 		self.primary_fmap.clear()
@@ -102,6 +104,14 @@ class MindReader():
 					weights[word] = max(weights[word], math.pow(self.p_single_error, num_errors))
 				else:
 					weights[word] = math.pow(self.p_single_error, num_errors)
+
+		# step 2: calculate a priori based on primary word freq table
+		for word in weights:
+			weights[word] *= self.primary_fmap[word] / self.primary_total_count if word in self.primary_fmap else len(self.primary_fmap) / self.primary_total_count
+
+		# step 3: calculate a priori based on secondary word freq table
+		for word in weights:
+			weights[word] *= self.secondary_fmap[word] / self.secondary_total_count if word in self.secondary_fmap else len(self.secondary_fmap) / self.secondary_total_count
 		return sorted(list(weights), key=lambda s: weights[s], reverse=True)
 		
 if __name__ == '__main__':
@@ -132,7 +142,8 @@ if __name__ == '__main__':
 			self.assertEqual(mind_reader.primary_fmap[word], 1)
 
 		def test_playground(self):
-			word = 'reverse'
+			word = 'associate'
+			self.mind_reader.increment_secondary('async')
 			for i in range(1, len(word)):
 				print(word[:i], '->', self.mind_reader.suggest(word[:i], 1))
 
