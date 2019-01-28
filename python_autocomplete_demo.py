@@ -5,7 +5,6 @@ from curses import wrapper
 import urllib.request
 import sys
 import keyword
-from MindReader import MindReader
 
 
 def main(stdscr):
