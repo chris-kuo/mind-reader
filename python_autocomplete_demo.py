@@ -28,10 +28,10 @@ def main(stdscr):
 		with open('python_builtin_functions.txt') as f:
 			for line in f:
 				word = line.split()[0]
-				mind_reader.increment_primary(word)
+				suggestor.increment_primary(word)
 		# load keyword
 		for word in keyword.kwlist:
-			mind_reader.increment_primary(word)
+			suggestor.increment_primary(word)
 
 	stdscr.addstr(6, 0, 'Press enter to begin.')
 	c = stdscr.getch()
@@ -54,7 +54,7 @@ def main(stdscr):
 		elif ch.isalnum() or ch.isspace():
 			buf.append(ch)
 			if ch.isspace():
-				mind_reader.increment_secondary(''.join(buf).split()[-1])
+				suggestor.increment_secondary(''.join(buf).split()[-1])
 
 		partial_input = ''.join(buf).split()[-1]
 		suggestion = ' '.join(suggestor.suggest(partial_input))
