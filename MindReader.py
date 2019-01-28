@@ -1,5 +1,5 @@
 from FuzzyTrie import FuzzyTrie
-
+import math
 
 class MindReader():
 	def __init__(self):
@@ -9,6 +9,7 @@ class MindReader():
 		self.secondary_total_count = 0
 		self.primary_trie = FuzzyTrie()
 		self.secondary_trie = FuzzyTrie()
+		self.p_single_error = 0.1
 
 
 	########## Load Word Frequency ##########
@@ -76,7 +77,33 @@ class MindReader():
 		self.secondary_fmap.clear()
 		self.secondary_trie.clear()
 
+	########## Auto Completion ##########
+	def suggest(self, partial_input: str, allowed_errors: int=0, num_suggestions: int=6) -> [str]:
+		# Given a partial input and acceptable number of input errors, return list
+		# of ranked suggested words.
+		
+		# get list of candidates words grouped in number of errors in matching partial input
+		candidates = self.primary_trie.match_prefix(partial_input, allowed_errors)
+		for num_errors, words in self.secondary_trie.match_prefix(partial_input, allowed_errors).items():
+			if num_errors not in candidates:
+				candidates[num_errors] = words
+			else:
+				candidates[num_errors] |= words
+		# score the candidates
+		candidates = self.score(candidates)
+		return candidates[:num_suggestions]
 
+	def score(self, candidates: dict) -> [str]:
+		# step 1: convert num_errors to probability
+		weights = dict()
+		for num_errors, words in candidates.items():
+			for word in words:
+				if word in weights:
+					weights[word] = max(weights[word], math.pow(self.p_single_error, num_errors))
+				else:
+					weights[word] = math.pow(self.p_single_error, num_errors)
+		return sorted(list(weights), key=lambda s: weights[s], reverse=True)
+		
 if __name__ == '__main__':
 	# Run unit test
 	import unittest
@@ -88,6 +115,7 @@ if __name__ == '__main__':
 
 			default_primary_file = 'count_1w.txt'
 			with open(default_primary_file) as infile:
+				# load top 5000 words instead of entire word list
 				self.primary_num_words_loaded = self.mind_reader.load_primary_freq(infile, 5000)
 			self.assertEqual(self.primary_num_words_loaded, len(self.mind_reader.primary_trie))
 
@@ -102,5 +130,10 @@ if __name__ == '__main__':
 			word = 'not_exist'
 			mind_reader.increment_primary(word)
 			self.assertEqual(mind_reader.primary_fmap[word], 1)
+
+		def test_playground(self):
+			word = 'reverse'
+			for i in range(1, len(word)):
+				print(word[:i], '->', self.mind_reader.suggest(word[:i], 1))
 
 	unittest.main()

@@ -16,7 +16,7 @@ class FuzzyTrie(Trie):
 		# First must match first char
 		node = self.head.traverse(prefix[0])
 		if node is None:
-			return []
+			return dict()
 		# first prefix matched, now fuzzy traverse remaining prefix
 		traverse_results = node.fuzzy_traverse(prefix[1:], allowed_errors)
 
@@ -32,7 +32,6 @@ class FuzzyTrie(Trie):
 				words = set(word for word in words if word not in seen)
 				result[num_errors] |= words
 				seen |= words
-
 		return result
 
 		# must match at the first ch in prefix
