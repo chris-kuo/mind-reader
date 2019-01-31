@@ -39,7 +39,7 @@ class MindReader():
 		try:
 			with open(self.default_primary_file) as infile:
 				# load top 5000 words instead of entire word list
-				self.primary_num_words_loaded = self.mind_reader.load_primary_freq(infile)
+				self.primary_num_words_loaded = self.load_primary_freq(infile)
 		except IOError as err:
 		    print("I/O error: {0}".format(err))
 
