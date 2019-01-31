@@ -118,11 +118,13 @@ class MindReader():
 
 		# step 2: calculate a priori based on primary word freq table
 		for word in weights:
-			weights[word] *= self.primary_fmap[word] / self.primary_total_count if word in self.primary_fmap else len(self.primary_fmap) / self.primary_total_count
+			weights[word] *= self.primary_fmap[word] / self.primary_total_count if word in self.primary_fmap else \
+					(len(self.primary_fmap) / self.primary_total_count if self.primary_total_count else 0.1)
 
 		# step 3: calculate a priori based on secondary word freq table
 		for word in weights:
-			weights[word] *= self.secondary_fmap[word] / self.secondary_total_count if word in self.secondary_fmap else len(self.secondary_fmap) / self.secondary_total_count
+			weights[word] *= self.secondary_fmap[word] / self.secondary_total_count if word in self.secondary_fmap else \
+					(len(self.secondary_fmap) / self.secondary_total_count if self.secondary_total_count else 0.1)
 		return sorted(list(weights), key=lambda s: weights[s], reverse=True)
 		
 if __name__ == '__main__':

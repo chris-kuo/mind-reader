@@ -1,7 +1,60 @@
 # Mind Reader
-A word completion module. Suggest words from partial input implemented using trie and handles single and double (optional) input errors.
+A word completion module. Suggest words from partial inputs. Implemented using trie and handles single and double (optional) input errors.
 
 A simple demo is provided with the source code to demonstrate suggestions from incremental partial matching.
+
+# Usage
+
+First clone the mind-reader repository
+
+```
+git clone https://github.com/chris-kuo/mind-reader.git
+```
+
+Clone the MinderReader module and copy the files to the source file directory. For autocompletion of English words, the repo comes with the default word frequency data based on Mr. Norvig's word frequency table at [https://norvig.com/ngrams/].
+
+_Example: use as autocompletor for English words_
+
+```Python
+from MindReader import MindReader
+
+def main():
+	suggestor = MindReader()
+	suggestor.load_default_primary_freq()
+	...
+	partial_input = read_user_input()
+	suggestions = suggestor.suggest(partial_input, allowed_errors=1, num_suggestions=8)
+	...
+```
+
+_Example: use as autocompletor for Python IDE_
+
+```Python
+from MindReader import MindReader
+import keyword
+
+if __name__ == '__main__':
+	mind_reader = MindReader()
+	# load built in function names
+	with open('python_builtin_functions.txt') as f:
+		for line in f:
+			word = line.split()[0]
+			mind_reader.increment_primary(word)
+	# load keyword
+	for word in keyword.kwlist:
+		mind_reader.increment_primary(word)
+	...
+	partial_input = read_user_input()
+	suggestions = mind_reader.suggest(partial_input, allowed_errors=1, num_suggestions=6)
+	...
+	# after user completes input (such as insertion of space or new line)
+	# use secondary for variable/user defined names
+	mind_reader.increment_secondary(user_input)
+	# for example, if user entered 'count' as variable name:
+	# 	mind_reader.increment_secondary('count')
+	...
+```
+
 
 # Sample demo output
 Note that the '--' in suggested word list seprates results with no input errors, 1 error, and 2 errors.
