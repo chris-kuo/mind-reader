@@ -1,6 +1,7 @@
 from Trie import Trie, TrieNode
 import heapq
 from collections import defaultdict, namedtuple
+from functools import lru_cache
 
 class FuzzyTrie(Trie):
 	'''
@@ -12,6 +13,7 @@ class FuzzyTrie(Trie):
 		super().__init__()
 		self.head = TrieNode()
 
+	@lru_cache(maxsize=1000)
 	def match_prefix(self, prefix, allowed_errors: int=0) -> dict:
 		# First must match first char
 		node = self.head.traverse(prefix[0])

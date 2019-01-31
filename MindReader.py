@@ -1,6 +1,7 @@
 from FuzzyTrie import FuzzyTrie
 import math
 
+
 class MindReader():
 	def __init__(self):
 		self.primary_fmap = dict() # primary frequency map

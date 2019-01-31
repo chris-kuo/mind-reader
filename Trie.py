@@ -45,6 +45,7 @@ class TrieNode():
 		words += [(self.ch + word) for child in self.children.values() for word in child.gather()]
 		return words		
 
+	@lru_cache(maxsize=100)
 	def traverse(self, suffix):
 		# traverse from current node through string s and return the node corresponding
 		# to s[-1]. Return None if suffix doesn't result in valid path
@@ -54,7 +55,7 @@ class TrieNode():
 				return None
 			node = node.children[ch]
 		return node
-
+	@lru_cache(maxsize=500)
 	def fuzzy_traverse(self, suffix: str, allowed_errors: int=0) -> dict():
 		# Use a queue to hold nodes to be traversed
 		# Each Queue Item need to hold the current number of errors,
